@@ -33,8 +33,8 @@ int execute_command(char command);
 
 int main(int argc, char const *argv[])
 {
-	text = (char *) malloc(sizeof(char));
-	pattern = (char *) malloc(sizeof(char));
+	text = (char *) malloc(size[TEXT_IDX] * sizeof(char));
+	pattern = (char *) malloc(size[PATTERN_IDX] * sizeof(char));
 
 	if (argc > 0 && strncmp(TEST, argv[0], TEST_SIZE)) {
 		/*test(run());*/
