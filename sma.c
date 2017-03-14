@@ -42,7 +42,7 @@ void delete_all();
 void naive_algorithim(char * text, int text_size, char * pattern, int pattern_size);
 
 void kmp_algorithim(char * text, int text_size, char * pattern, int pattern_size);
-int * generate_pi_table (int *pi_table, char * pattern, int pattern_size);
+void generate_pi_table (int *pi_table, char * pattern, int pattern_size);
 
 void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size);
 
@@ -259,12 +259,13 @@ void naive_algorithim(char * text, int text_size, char * pattern, int pattern_si
 void kmp_algorithim(char * text, int text_size, char * pattern, int pattern_size) {
 	int pi_table[pattern_size];
 	generate_pi_table(pi_table, pattern, pattern_size);
+	/* debug */
 	for (int i=0; i<pattern_size; i++) {
 		printf("%d ", pi_table[i]);
 	}
 }
 
-int * generate_pi_table (int *pi_table, char * pattern, int pattern_size) {
+void generate_pi_table (int *pi_table, char * pattern, int pattern_size) {
 	int i = 0;
 	int pos = 1;
 	pi_table[0] = 0; /* always like this */
@@ -281,10 +282,16 @@ int * generate_pi_table (int *pi_table, char * pattern, int pattern_size) {
 			pos+=1;
 		}
 	}
-
-	return pi_table;
 }
 
 void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size) {
 	
+
+
+
+
+
+
+
+
 }
