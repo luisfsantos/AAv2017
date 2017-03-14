@@ -294,18 +294,21 @@ void generate_pi_table (int *pi_table, char * pattern, int pattern_size) {
 void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size) {
 	int pos = 0;
 	int i = pattern_size;
+	int comparisons = 0;
 	while(pos <= text_size-pattern_size) {
+		comparisons++;
 		if (text[pos+i-1] == pattern[i-1] && i>0) {
 			i--;
 		} else {
 			if (i == 0) {
-				printf("%d\n", i);
+				printf("%d ", pos);
 			}
 			i=pattern_size;
 			pos = apply_skip(text, text_size, pos);
 		}
 	}
 	printf("\n");
+	printf("%d \n", comparisons);
 }
 
 int apply_skip(char * text, int text_size, int pos) {
