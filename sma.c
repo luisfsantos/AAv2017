@@ -25,6 +25,12 @@
 #define REDUCTION 4
 #endif
 
+/* 
+*  How to Compile this program 
+*  gcc -O3 -ansi -Wall sma.c
+*/
+
+
 int content_size[2] = {0,0};
 int space[2] = {1,1};
 int buffer_size[2] = {1,1};
@@ -285,7 +291,12 @@ void generate_pi_table (int *pi_table, char * pattern, int pattern_size) {
 }
 
 void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size) {
-	
+	int pos=pattern_size-1;
+	int i = 0;
+	while(pos < text_size) {
+		i = 3;
+		pos++;
+	}
 
 
 
