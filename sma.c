@@ -51,6 +51,7 @@ void kmp_algorithim(char * text, int text_size, char * pattern, int pattern_size
 void generate_pi_table (int *pi_table, char * pattern, int pattern_size);
 
 void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size);
+int apply_skip(char * text, int text_size, int pos);
 
 int main(int argc, char const *argv[])
 {
@@ -291,18 +292,22 @@ void generate_pi_table (int *pi_table, char * pattern, int pattern_size) {
 }
 
 void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size) {
-	int pos=pattern_size-1;
-	int i = 0;
-	while(pos < text_size) {
-		i = 3;
-		pos++;
+	int pos = 0;
+	int i = pattern_size;
+	while(pos <= text_size-pattern_size) {
+		if (text[pos+i-1] == pattern[i-1] && i>0) {
+			i--;
+		} else {
+			if (i == 0) {
+				printf("%d\n", i);
+			}
+			i=pattern_size;
+			pos = apply_skip(text, text_size, pos);
+		}
 	}
+	printf("\n");
+}
 
-
-
-
-
-
-
-
+int apply_skip(char * text, int text_size, int pos) {
+	return pos+1;
 }
