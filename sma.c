@@ -264,12 +264,41 @@ void naive_algorithim(char * text, int text_size, char * pattern, int pattern_si
 }
 
 void kmp_algorithim(char * text, int text_size, char * pattern, int pattern_size) {
+
+	pattern_size++; /* ACCOUNT FOR \0*/
 	int pi_table[pattern_size];
 	generate_pi_table(pi_table, pattern, pattern_size);
 	/* debug */
-	for (int i=0; i<pattern_size; i++) {
-		printf("%d ", pi_table[i]);
+	for (int j=0; j<pattern_size; j++) {
+		printf("%d ", pi_table[j]);
 	}
+	printf("\n");
+
+	int comparisons = 0;
+	int p = 0; /* the position of the current character in pattern */
+	int t; /* the beginning of the current match in text */
+	
+	for (t = 0; t < text_size; t++) {
+
+		while ((p > 0) && (pattern[p] != text[t])) {
+			comparisons++;
+			p = pi_table[p];
+		}
+
+		comparisons++;
+		if (pattern[p] == text[t]) {
+			p++;
+		}
+
+		if (p == (pattern_size-1)) {			
+			printf("%d ", t - (pattern_size - 1) + 1); /* (pattern_size - 1) to not count \0 */
+			/* p = pi_table[p-1];
+			*  ^original algorithm has this line, but bc we're running a modified 
+			*  version that includes the \0 in the pattern, this line doesn't make sense */
+		}
+	}
+
+	printf("\n%d \n", comparisons);
 }
 
 void generate_pi_table (int *pi_table, char * pattern, int pattern_size) {
@@ -277,7 +306,7 @@ void generate_pi_table (int *pi_table, char * pattern, int pattern_size) {
 	int pos = 1;
 	pi_table[0] = 0; /* always like this */
 
-	while (pos < pattern_size) {
+	while (pos < (pattern_size-1)) {
 		if(pattern[pos] == pattern[i]) {
 			i+=1;
 			pi_table[pos]=i;
@@ -289,6 +318,8 @@ void generate_pi_table (int *pi_table, char * pattern, int pattern_size) {
 			pos+=1;
 		}
 	}
+	/* entry for \0 always the same as entry for last actual pattern char */
+	pi_table[pos] = pi_table[pos-1];
 }
 
 void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size) {
