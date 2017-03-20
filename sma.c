@@ -343,5 +343,7 @@ void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size)
 }
 
 int apply_skip(char * text, int text_size, int pos) {
-	return pos+1;
+	int bc= bad_character();
+	int sgs = strong_good_suffix();
+	return (bc > sgs) ? bc: sgs;
 }
