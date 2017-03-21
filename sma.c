@@ -328,9 +328,7 @@ void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size)
 	int i = pattern_size;
 	int comparisons = 0;
 	int Z[pattern_size];
-	printf("%s\n", "before z_preprocess");
 	z_preprocess(pattern, pattern_size, Z);
-	/*printf("%s\n", "after z_preprocess");
 	while(pos <= text_size-pattern_size) {
 		comparisons++;
 		if (text[pos+i-1] == pattern[i-1] && i>0) {
@@ -344,7 +342,7 @@ void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size)
 		}
 	}
 	printf("\n");
-	printf("%d \n", comparisons);*/
+	printf("%d \n", comparisons);
 }
 
 int apply_skip(char * text, int text_size, int pos) {
@@ -358,7 +356,6 @@ void z_preprocess(char * pattern, int pattern_size, int * Z) {
 	int r = 0;
 	int k;
 	Z[0] = 0; /* Zi for all 0 < i < k-1 */
-	printf("%d ", Z[0]);
 	for (k = 1; k < pattern_size; k++) { /*because we want a proper prefix i=1*/
 		if(k>r) {
 			/* if k was larger than r in this iteration it will be larger in the next if Zk=0
@@ -373,8 +370,8 @@ void z_preprocess(char * pattern, int pattern_size, int * Z) {
 				l = k;
 			} 
 		} else {
-			int k_prime = k - l + 1;
-			if (Z[k] < (r-k+1)) {
+			int k_prime = k - l;
+			if (Z[k_prime] < (r-k)) {
 				Z[k] = Z[k_prime];
 			} else {
 				while (pattern[r-k]==pattern[r] && r<pattern_size) {
@@ -385,6 +382,5 @@ void z_preprocess(char * pattern, int pattern_size, int * Z) {
 				r--;
 			}
 		}
-		printf("%d ", Z[k]);
 	}
 }
