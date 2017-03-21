@@ -52,6 +52,7 @@ void generate_pi_table (int *pi_table, char * pattern, int pattern_size);
 
 void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size);
 int apply_skip(char * text, int text_size, int pos);
+void z_preprocess(char * pattern, int pattern_size, int * Z);
 
 int main(int argc, char const *argv[])
 {
@@ -326,6 +327,10 @@ void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size)
 	int pos = 0;
 	int i = pattern_size;
 	int comparisons = 0;
+	int Z[pattern_size];
+	printf("%s\n", "before z_preprocess");
+	z_preprocess(pattern, pattern_size, Z);
+	/*printf("%s\n", "after z_preprocess");
 	while(pos <= text_size-pattern_size) {
 		comparisons++;
 		if (text[pos+i-1] == pattern[i-1] && i>0) {
@@ -339,11 +344,47 @@ void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size)
 		}
 	}
 	printf("\n");
-	printf("%d \n", comparisons);
+	printf("%d \n", comparisons);*/
 }
 
 int apply_skip(char * text, int text_size, int pos) {
-	int bc= bad_character();
-	int sgs = strong_good_suffix();
+	int bc = 1/*= bad_character()*/;
+	int sgs = 0/*= strong_good_suffix()*/;
 	return (bc > sgs) ? bc: sgs;
+}
+
+void z_preprocess(char * pattern, int pattern_size, int * Z) {
+	int l = 0;
+	int r = 0;
+	int k;
+	Z[0] = 0; /* Zi for all 0 < i < k-1 */
+	printf("%d ", Z[0]);
+	for (k = 1; k < pattern_size; k++) { /*because we want a proper prefix i=1*/
+		if(k>r) {
+			/* if k was larger than r in this iteration it will be larger in the next if Zk=0
+			* this means the following r=k has no effect on the algorithim */
+			r = k; 
+			while (pattern[r-k]==pattern[r] && r<pattern_size) {
+				r++;
+			}
+			Z[k] = r-k; /* r - k in this case is equivalent to the length */
+			if ((r-k) > 0) { 
+				r--; /* we only do r-- as what we want is r=k+Zk-1 but Zk is r-k so r = k+r-k-1 <->  r=r-1*/
+				l = k;
+			} 
+		} else {
+			int k_prime = k - l + 1;
+			if (Z[k] < (r-k+1)) {
+				Z[k] = Z[k_prime];
+			} else {
+				while (pattern[r-k]==pattern[r] && r<pattern_size) {
+					r++;
+				}
+				Z[k] = r-k;
+				l=k;
+				r--;
+			}
+		}
+		printf("%d ", Z[k]);
+	}
 }
