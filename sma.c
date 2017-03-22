@@ -25,6 +25,7 @@
 #define REDUCTION 4
 #endif
 
+#define ALPHABET_SIZE 4
 /* 
 *  How to Compile this program 
 *  gcc -O3 -ansi -Wall sma.c
@@ -36,9 +37,12 @@ int space[2] = {1,1};
 int buffer_size[2] = {1,1};
 char *text;
 char *pattern;
+int R[ALPHABET_SIZE];
+char Alphabet[ALPHABET_SIZE] = {'A', 'C', 'G', 'T'};
 
 void test(void** func);
 void run();
+void init();
 char * update_buffer(char * buffer, int * size, int * content_size);
 int execute_command(char command);
 int calc_diff(int index, int space);
@@ -59,16 +63,17 @@ int main(int argc, char const *argv[])
 	text = (char *) malloc(buffer_size[TEXT_IDX] * sizeof(char));
 	pattern = (char *) malloc(buffer_size[PATTERN_IDX] * sizeof(char));
 
-	if (argc > 0 && strncmp(TEST, argv[0], TEST_SIZE)) {
-		/*test(run());*/
-		/*run();*/
-	}
+
+	init();
 	run();
 	return 0;
 }
 
 void test(void ** func) {
 
+}
+
+void init() {
 }
 
 /* ================================================================
@@ -383,4 +388,8 @@ void z_preprocess(char * pattern, int pattern_size, int * Z) {
 			}
 		}
 	}
+}
+
+int bad_character(int * R, char check, int index) {
+	return 1;
 }
