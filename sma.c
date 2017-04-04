@@ -57,6 +57,7 @@ void generate_pi_table (int *pi_table, char * pattern, int pattern_size);
 void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size);
 int apply_skip(char * text, int text_size, int pos);
 void z_preprocess(char * pattern, int pattern_size, int * Z);
+void generate_N_array(char * pattern, int pattern_size, int * N);
 
 int main(int argc, char const *argv[])
 {
@@ -333,7 +334,14 @@ void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size)
 	int i = pattern_size;
 	int comparisons = 0;
 	int Z[pattern_size];
+	int N[pattern_size];
 	z_preprocess(pattern, pattern_size, Z);
+	generate_N_array(pattern, pattern_size, N);
+	for (int d = 0; d < pattern_size; d++)
+	{
+		printf("%d ", N[d]);
+	}
+
 	while(pos <= text_size-pattern_size) {
 		comparisons++;
 		if (text[pos+i-1] == pattern[i-1] && i>0) {
@@ -388,6 +396,24 @@ void z_preprocess(char * pattern, int pattern_size, int * Z) {
 			}
 		}
 	}
+}
+
+void generate_N_array(char * pattern, int pattern_size, int * N) {
+	char reversed[pattern_size];
+	int aux;
+	int i = 0;
+	for (i=0; i<pattern_size; i++) {
+		reversed[i] = pattern[(pattern_size-1)-i];
+	}
+
+	z_preprocess(reversed, pattern_size, N);
+
+	for (i=0; i<pattern_size/2; i++) {
+		aux = N[(pattern_size-1)-i];
+		N[(pattern_size-1)-i] = N[i];
+		N[i] = aux;
+	}
+
 }
 
 int bad_character(int * R, char check, int index) {
