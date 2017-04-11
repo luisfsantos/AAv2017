@@ -55,7 +55,8 @@ void kmp_algorithim(char * text, int text_size, char * pattern, int pattern_size
 void generate_pi_table (int *pi_table, char * pattern, int pattern_size);
 
 void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size);
-int apply_skip(char * text, int text_size, int pos);
+int apply_skip(int * L_prime, int * l_prime, int pos, int pattern_size);
+int strong_good_suffix(int * L_prime, int * l_prime, int pos, int pattern_size);
 void z_preprocess(char * pattern, int pattern_size, int * Z);
 void generate_N_array(char * pattern, int pattern_size, int * N);
 void generate_L_prime_array(char * pattern, int pattern_size, int * N, int * L_prime);
@@ -361,12 +362,13 @@ void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size)
 			h--;
 			comparisons++;
 		}
+		comparisons++;
 		if (i==0) {
 			printf("%d ", k-pattern_size);
 			int l_shift = (pattern_size >= 2) ? 1 : 0;
 			k += pattern_size - l_prime[l_shift];
 		} else {
-			k+=apply_skip(text, text_size, k);
+			k+=apply_skip(L_prime, l_prime, i-1, pattern_size);
 		}
 	}
 
@@ -375,10 +377,20 @@ void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size)
 }
 
 
-int apply_skip(char * text, int text_size, int pos) {
+int apply_skip(int * L_prime, int * l_prime, int pos, int pattern_size) {
 	int bc = 1/*= bad_character()*/;
-	int sgs = 0/*= strong_good_suffix()*/;
+	int sgs = strong_good_suffix(L_prime, l_prime, pos, pattern_size);
 	return (bc > sgs) ? bc : sgs;
+}
+
+int strong_good_suffix(int * L_prime, int * l_prime, int pos, int pattern_size) {
+	int Li = L_prime[pos];
+	int li = l_prime[pos];
+	if (Li > 0) {
+		return pattern_size - Li;
+	} else {
+		return pattern_size - li;
+	}
 }
 
 void z_preprocess(char * pattern, int pattern_size, int * Z) {
