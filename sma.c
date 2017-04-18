@@ -58,6 +58,7 @@ void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size)
 int apply_skip(int * L_prime, int * l_prime, int pos, int pattern_size);
 int strong_good_suffix(int * L_prime, int * l_prime, int pos, int pattern_size);
 void z_preprocess(char * pattern, int pattern_size, int * Z);
+void R_preprocess(char * pattern, int pattern_size);
 void generate_N_array(char * pattern, int pattern_size, int * N);
 void generate_L_prime_array(char * pattern, int pattern_size, int * N, int * L_prime);
 void generate_l_prime_array(int pattern_size, int * N, int * l_prime);
@@ -482,6 +483,37 @@ void generate_l_prime_array(int pattern_size, int * N, int * l_prime) {
 		}
 	}
 
+}
+
+void R_preprocess(char * pattern, int pattern_size) {
+	int i = 0;
+	for (i=0; i<pattern_size; i++) {
+		R[i] = 0;
+	}
+
+	for (i = pattern_size-1; i >=0; i--)
+	{
+		int aux = 0;
+		if (R[i] == 0 && aux < ALPHABET_SIZE) {
+			if (pattern[i] == "A") {
+				R[0] = i;
+				aux++;
+			}
+			else if (pattern[i] == "C") {
+				R[1] = i;
+				aux++;
+			}
+			else if (pattern[i] == "G") {
+				R[2] = i;
+				aux++;
+			}
+			else if (pattern[i] == "T") {
+				R[3] = i;
+				aux++;;
+			}
+		}
+		
+	}
 }
 
 
