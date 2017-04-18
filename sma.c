@@ -55,8 +55,9 @@ void kmp_algorithim(char * text, int text_size, char * pattern, int pattern_size
 void generate_pi_table (int *pi_table, char * pattern, int pattern_size);
 
 void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size);
-int apply_skip(int * L_prime, int * l_prime, int pos, int pattern_size);
+int apply_skip(char * text, int * L_prime, int * l_prime, int pos, int pattern_size);
 int strong_good_suffix(int * L_prime, int * l_prime, int pos, int pattern_size);
+int bad_character(char * text, int index);
 void z_preprocess(char * pattern, int pattern_size, int * Z);
 void R_preprocess(char * pattern, int pattern_size);
 void generate_N_array(char * pattern, int pattern_size, int * N);
@@ -342,17 +343,23 @@ void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size)
 	int L_prime[pattern_size];
 	int l_prime[pattern_size];
 	z_preprocess(pattern, pattern_size, Z);
+	R_preprocess(pattern, pattern_size);
 	generate_N_array(pattern, pattern_size, N);
 	generate_L_prime_array(pattern, pattern_size, N, L_prime);
 	generate_l_prime_array(pattern_size, N, l_prime);
 	/* AUX PREPROCESSING */
 
-	for (int d = 0; d < pattern_size; d++)
+	/*for (int d = 0; d < pattern_size; d++)
 	{
 		printf("N[%d] %d, ", d, N[d]);
 		printf("L[%d] %d, ", d, L_prime[d]);
 		printf("l[%d] %d \n", d, l_prime[d]);
+
 	}
+	for (int e = 0; e < ALPHABET_SIZE; ++e)
+	{
+		printf("R[%d] %d \n", e, R[e]);
+	}*/
 
 	
 	while (k <= text_size) {
@@ -363,13 +370,12 @@ void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size)
 			h--;
 			comparisons++;
 		}
-		comparisons++;
 		if (i==0) {
 			printf("%d ", k-pattern_size);
 			int l_shift = (pattern_size >= 2) ? 1 : 0;
 			k += pattern_size - l_prime[l_shift];
 		} else {
-			k+=apply_skip(L_prime, l_prime, i-1, pattern_size);
+			k+=apply_skip(text, L_prime, l_prime, i, pattern_size);
 		}
 	}
 
@@ -378,9 +384,10 @@ void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size)
 }
 
 
-int apply_skip(int * L_prime, int * l_prime, int pos, int pattern_size) {
-	int bc = 1/*= bad_character()*/;
+int apply_skip(char * text, int * L_prime, int * l_prime, int pos, int pattern_size) {
+	int bc = bad_character(text, pos);
 	int sgs = strong_good_suffix(L_prime, l_prime, pos, pattern_size);
+	printf("bc: %d sgs: %d\n", bc, sgs);
 	return (bc > sgs) ? bc : sgs;
 }
 
@@ -487,36 +494,48 @@ void generate_l_prime_array(int pattern_size, int * N, int * l_prime) {
 
 void R_preprocess(char * pattern, int pattern_size) {
 	int i = 0;
-	for (i=0; i<pattern_size; i++) {
+	int aux = 0;
+	for (i=0; i<ALPHABET_SIZE; i++) {
 		R[i] = 0;
 	}
 
-	for (i = pattern_size-1; i >=0; i--)
+	for (i = pattern_size-1; i >= 0 && aux < ALPHABET_SIZE; i--)
 	{
-		int aux = 0;
-		if (R[i] == 0 && aux < ALPHABET_SIZE) {
-			if (pattern[i] == "A") {
-				R[0] = i;
-				aux++;
-			}
-			else if (pattern[i] == "C") {
-				R[1] = i;
-				aux++;
-			}
-			else if (pattern[i] == "G") {
-				R[2] = i;
-				aux++;
-			}
-			else if (pattern[i] == "T") {
-				R[3] = i;
-				aux++;;
-			}
+		if (pattern[i] == 'A' && R[0] == 0) {
+			R[0] = i;
+			aux++;
+		}
+		else if (pattern[i] == 'C' && R[1] == 0) {
+			R[1] = i;
+			aux++;
+		}
+		else if (pattern[i] == 'G' && R[2] == 0) {
+			R[2] = i;
+			aux++;
+		}
+		else if (pattern[i] == 'T' && R[3] == 0) {
+			R[3] = i;
+			aux++;
 		}
 		
 	}
 }
 
 
-int bad_character(int * R, char check, int index) {
-	return 1;
+int bad_character(char * text, int index) {
+	int result = index;
+	char check = text[index];
+	if (check == 'A') {
+		result -= R[0];
+	}
+	else if (check == 'C' && R[1] == 0) {
+		result -= R[1];
+	}
+	else if (check == 'G' && R[2] == 0) {
+		result -= R[2];
+	}
+	else if (check == 'T' && R[3] == 0) {
+		result -= R[3];
+	}
+	return result > 1 ? result : 1;
 }
