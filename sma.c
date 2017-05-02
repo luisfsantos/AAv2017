@@ -388,6 +388,7 @@ void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size)
 int apply_skip(char * text, int * L_prime, int * l_prime, int pos_t, int pos_p, int pattern_size) {
 	int bc = bad_character(text, pos_t, pos_p);
 	int sgs = strong_good_suffix(L_prime, l_prime, pos_p, pattern_size);
+	printf("bc: %d sgs: %d\n", bc, sgs);
 	return (bc > sgs) ? bc : sgs;
 }
 
