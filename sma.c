@@ -55,9 +55,9 @@ void kmp_algorithim(char * text, int text_size, char * pattern, int pattern_size
 void generate_pi_table (int *pi_table, char * pattern, int pattern_size);
 
 void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size);
-int apply_skip(char * text, int * L_prime, int * l_prime, int pos, int pattern_size);
+int apply_skip(char * text, int * L_prime, int * l_prime, int pos_t, int pos_p, int pattern_size);
 int strong_good_suffix(int * L_prime, int * l_prime, int pos, int pattern_size);
-int bad_character(char * text, int index);
+int bad_character(char * text, int pos_t, int pos_p);
 void z_preprocess(char * pattern, int pattern_size, int * Z);
 void R_preprocess(char * pattern, int pattern_size);
 void generate_N_array(char * pattern, int pattern_size, int * N);
@@ -336,7 +336,7 @@ void generate_pi_table (int *pi_table, char * pattern, int pattern_size) {
 
 void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size) {
 	int comparisons = 0;
-	int k = pattern_size;
+	int k = pattern_size-1;
 	/* AUX PREPROCESSING */ 
 	int Z[pattern_size];
 	int N[pattern_size];
@@ -348,34 +348,35 @@ void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size)
 	generate_L_prime_array(pattern, pattern_size, N, L_prime);
 	generate_l_prime_array(pattern_size, N, l_prime);
 	/* AUX PREPROCESSING */
-
-	/*for (int d = 0; d < pattern_size; d++)
+	for (int d = 0; d < pattern_size; d++)
 	{
 		printf("N[%d] %d, ", d, N[d]);
 		printf("L[%d] %d, ", d, L_prime[d]);
 		printf("l[%d] %d \n", d, l_prime[d]);
-
 	}
 	for (int e = 0; e < ALPHABET_SIZE; ++e)
 	{
 		printf("R[%d] %d \n", e, R[e]);
-	}*/
+	}
 
-	
-	while (k <= text_size) {
+	while (k < text_size) {
 		int i = pattern_size;
 		int h = k;
-		while (i > 0 && pattern[i-1] == text[h-1]) {
+		printf("k %d \n", k);
+		while (i > 0 && pattern[i-1] == text[h]) {
 			i--;
 			h--;
 			comparisons++;
 		}
+		if (i > 0 && pattern[i-1] != text[h]) {
+			comparisons++;
+		}
 		if (i==0) {
-			printf("%d ", k-pattern_size);
+			printf("%d ", k-pattern_size+1);
 			int l_shift = (pattern_size >= 2) ? 1 : 0;
 			k += pattern_size - l_prime[l_shift];
 		} else {
-			k+=apply_skip(text, L_prime, l_prime, i, pattern_size);
+			k+=apply_skip(text, L_prime, l_prime, h, i, pattern_size);
 		}
 	}
 
@@ -384,9 +385,9 @@ void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size)
 }
 
 
-int apply_skip(char * text, int * L_prime, int * l_prime, int pos, int pattern_size) {
-	int bc = bad_character(text, pos);
-	int sgs = strong_good_suffix(L_prime, l_prime, pos, pattern_size);
+int apply_skip(char * text, int * L_prime, int * l_prime, int pos_t, int pos_p, int pattern_size) {
+	int bc = bad_character(text, pos_t, pos_p);
+	int sgs = strong_good_suffix(L_prime, l_prime, pos_t, pattern_size);
 	printf("bc: %d sgs: %d\n", bc, sgs);
 	return (bc > sgs) ? bc : sgs;
 }
@@ -502,19 +503,19 @@ void R_preprocess(char * pattern, int pattern_size) {
 	for (i = pattern_size-1; i >= 0 && aux < ALPHABET_SIZE; i--)
 	{
 		if (pattern[i] == 'A' && R[0] == 0) {
-			R[0] = i;
+			R[0] = i+1; /*i is the index and we want the actual position in the pattern*/
 			aux++;
 		}
 		else if (pattern[i] == 'C' && R[1] == 0) {
-			R[1] = i;
+			R[1] = i+1;
 			aux++;
 		}
 		else if (pattern[i] == 'G' && R[2] == 0) {
-			R[2] = i;
+			R[2] = i+1;
 			aux++;
 		}
 		else if (pattern[i] == 'T' && R[3] == 0) {
-			R[3] = i;
+			R[3] = i+1;
 			aux++;
 		}
 		
@@ -522,19 +523,20 @@ void R_preprocess(char * pattern, int pattern_size) {
 }
 
 
-int bad_character(char * text, int index) {
-	int result = index;
-	char check = text[index];
+int bad_character(char * text, int pos_t, int pos_p) {
+	int result = pos_p;
+	char check = text[pos_t];
+	printf("pos_p: %d, pos_t: %d, check: %c\n", pos_p, pos_t, check);
 	if (check == 'A') {
 		result -= R[0];
 	}
-	else if (check == 'C' && R[1] == 0) {
+	else if (check == 'C') {
 		result -= R[1];
 	}
-	else if (check == 'G' && R[2] == 0) {
+	else if (check == 'G') {
 		result -= R[2];
 	}
-	else if (check == 'T' && R[3] == 0) {
+	else if (check == 'T') {
 		result -= R[3];
 	}
 	return result > 1 ? result : 1;
