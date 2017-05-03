@@ -25,6 +25,8 @@
 #define REDUCTION 4
 #endif
 
+#define VERBOSE 0
+
 #define ALPHABET_SIZE 4
 /* 
 *  How to Compile this program 
@@ -206,7 +208,7 @@ char * update_buffer(char * buffer, int * size, int * content_size) {
 		if(space == 0) {
 			space+=*size;
 			*size = *size*GROWTH;
-			printf("I have no space so I will double to %d and now I have %d free spaces \n", *size, space);
+			if (VERBOSE) { printf("I have no space so I will double to %d and now I have %d free spaces \n", *size, space); }
 			temp_buff = (char *) realloc(buffer, *size*sizeof(char));
 			if (temp_buff != NULL) {
 				buffer = temp_buff;
@@ -214,7 +216,7 @@ char * update_buffer(char * buffer, int * size, int * content_size) {
 				exit(-1);
 			}
 		}
-		printf("I have space (%d) so I will place __ %c __\n", space, c);
+		if (VERBOSE) { printf("I have space (%d) so I will place __ %c __\n", space, c); }
 		buffer[index] = c;
 		index++;
 		space--;
@@ -227,7 +229,7 @@ char * update_buffer(char * buffer, int * size, int * content_size) {
 	if (index*REDUCTION < space) {
 		*size = *size/calc_diff(index, space);
 		space=*size-index-1;
-		printf("I have too much space so I will reduce to %d and now I have %d free spaces \n", *size, space);
+		if (VERBOSE) { printf("I have too much space so I will reduce to %d and now I have %d free spaces \n", *size, space); }
 		temp_buff = (char *) realloc(buffer, *size*sizeof(char));
 		if (temp_buff != NULL) {
 			buffer = temp_buff;
@@ -281,10 +283,13 @@ void kmp_algorithim(char * text, int text_size, char * pattern, int pattern_size
 	int pi_table[pattern_size];
 	generate_pi_table(pi_table, pattern, pattern_size);
 	/* debug */
-	for (int j=0; j<pattern_size; j++) {
-		printf("%d ", pi_table[j]);
+	if (VERBOSE) { 
+		int j;
+		for (j = 0; j<pattern_size; j++) {
+			printf("%d ", pi_table[j]);
+		}
+		printf("\n"); 
 	}
-	printf("\n");
 
 	int comparisons = 0;
 	int p = 0; /* the position of the current character in pattern */
@@ -348,21 +353,25 @@ void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size)
 	generate_L_prime_array(pattern, pattern_size, N, L_prime);
 	generate_l_prime_array(pattern_size, N, l_prime);
 	/* AUX PREPROCESSING */
-	for (int d = 0; d < pattern_size; d++)
-	{
-		printf("N[%d] %d, ", d, N[d]);
-		printf("L[%d] %d, ", d, L_prime[d]);
-		printf("l[%d] %d \n", d, l_prime[d]);
+	if (VERBOSE) {
+		int d;
+		int e;
+		for (d = 0; d < pattern_size; d++)
+		{
+			printf("N[%d] %d, ", d, N[d]); 
+			printf("L[%d] %d, ", d, L_prime[d]);
+			printf("l[%d] %d \n", d, l_prime[d]);
+		}
+		for (e = 0; e < ALPHABET_SIZE; ++e)
+		{
+			printf("R[%d] %d \n", e, R[e]);
+		}
 	}
-	for (int e = 0; e < ALPHABET_SIZE; ++e)
-	{
-		printf("R[%d] %d \n", e, R[e]);
-	}
-
+	
 	while (k < text_size) {
 		int i = pattern_size;
 		int h = k;
-		printf("k %d \n", k);
+		if (VERBOSE) { printf("k %d \n", k); }
 		while (i > 0 && pattern[i-1] == text[h]) {
 			i--;
 			h--;
@@ -387,8 +396,8 @@ void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size)
 
 int apply_skip(char * text, int * L_prime, int * l_prime, int pos_t, int pos_p, int pattern_size) {
 	int bc = bad_character(text, pos_t, pos_p);
-	int sgs = strong_good_suffix(L_prime, l_prime, pos_t, pattern_size);
-	printf("bc: %d sgs: %d\n", bc, sgs);
+	int sgs = strong_good_suffix(L_prime, l_prime, pos_p, pattern_size);
+	if (VERBOSE) { printf("bc: %d sgs: %d\n", bc, sgs); }
 	return (bc > sgs) ? bc : sgs;
 }
 
@@ -526,7 +535,7 @@ void R_preprocess(char * pattern, int pattern_size) {
 int bad_character(char * text, int pos_t, int pos_p) {
 	int result = pos_p;
 	char check = text[pos_t];
-	printf("pos_p: %d, pos_t: %d, check: %c\n", pos_p, pos_t, check);
+	if (VERBOSE) { printf("pos_p: %d, pos_t: %d, check: %c\n", pos_p, pos_t, check); }
 	if (check == 'A') {
 		result -= R[0];
 	}
