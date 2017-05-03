@@ -25,6 +25,7 @@
 #define REDUCTION 4
 #endif
 
+#define ALPHABET_SIZE 4
 /* 
 *  How to Compile this program 
 *  gcc -O3 -ansi -Wall sma.c
@@ -36,9 +37,12 @@ int space[2] = {1,1};
 int buffer_size[2] = {1,1};
 char *text;
 char *pattern;
+int R[ALPHABET_SIZE];
+char Alphabet[ALPHABET_SIZE] = {'A', 'C', 'G', 'T'};
 
 void test(void** func);
 void run();
+void init();
 char * update_buffer(char * buffer, int * size, int * content_size);
 int execute_command(char command);
 int calc_diff(int index, int space);
@@ -51,23 +55,31 @@ void kmp_algorithim(char * text, int text_size, char * pattern, int pattern_size
 void generate_pi_table (int *pi_table, char * pattern, int pattern_size);
 
 void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size);
-int apply_skip(char * text, int text_size, int pos);
+int apply_skip(char * text, int * L_prime, int * l_prime, int pos_t, int pos_p, int pattern_size);
+int strong_good_suffix(int * L_prime, int * l_prime, int pos, int pattern_size);
+int bad_character(char * text, int pos_t, int pos_p);
+void z_preprocess(char * pattern, int pattern_size, int * Z);
+void R_preprocess(char * pattern, int pattern_size);
+void generate_N_array(char * pattern, int pattern_size, int * N);
+void generate_L_prime_array(char * pattern, int pattern_size, int * N, int * L_prime);
+void generate_l_prime_array(int pattern_size, int * N, int * l_prime);
 
 int main(int argc, char const *argv[])
 {
 	text = (char *) malloc(buffer_size[TEXT_IDX] * sizeof(char));
 	pattern = (char *) malloc(buffer_size[PATTERN_IDX] * sizeof(char));
 
-	if (argc > 0 && strncmp(TEST, argv[0], TEST_SIZE)) {
-		/*test(run());*/
-		/*run();*/
-	}
+
+	init();
 	run();
 	return 0;
 }
 
 void test(void ** func) {
 
+}
+
+void init() {
 }
 
 /* ================================================================
@@ -323,25 +335,209 @@ void generate_pi_table (int *pi_table, char * pattern, int pattern_size) {
 }
 
 void bm_algorithim(char * text, int text_size, char * pattern, int pattern_size) {
-	int pos = 0;
-	int i = pattern_size;
 	int comparisons = 0;
-	while(pos <= text_size-pattern_size) {
-		comparisons++;
-		if (text[pos+i-1] == pattern[i-1] && i>0) {
+	int k = pattern_size-1;
+	/* AUX PREPROCESSING */ 
+	int Z[pattern_size];
+	int N[pattern_size];
+	int L_prime[pattern_size];
+	int l_prime[pattern_size];
+	z_preprocess(pattern, pattern_size, Z);
+	R_preprocess(pattern, pattern_size);
+	generate_N_array(pattern, pattern_size, N);
+	generate_L_prime_array(pattern, pattern_size, N, L_prime);
+	generate_l_prime_array(pattern_size, N, l_prime);
+	/* AUX PREPROCESSING */
+	for (int d = 0; d < pattern_size; d++)
+	{
+		printf("N[%d] %d, ", d, N[d]);
+		printf("L[%d] %d, ", d, L_prime[d]);
+		printf("l[%d] %d \n", d, l_prime[d]);
+	}
+	for (int e = 0; e < ALPHABET_SIZE; ++e)
+	{
+		printf("R[%d] %d \n", e, R[e]);
+	}
+
+	while (k < text_size) {
+		int i = pattern_size;
+		int h = k;
+		printf("k %d \n", k);
+		while (i > 0 && pattern[i-1] == text[h]) {
 			i--;
+			h--;
+			comparisons++;
+		}
+		if (i > 0 && pattern[i-1] != text[h]) {
+			comparisons++;
+		}
+		if (i==0) {
+			printf("%d ", k-pattern_size+1);
+			int l_shift = (pattern_size >= 2) ? 1 : 0;
+			k += pattern_size - l_prime[l_shift];
 		} else {
-			if (i == 0) {
-				printf("%d ", pos);
-			}
-			i=pattern_size;
-			pos = apply_skip(text, text_size, pos);
+			k+=apply_skip(text, L_prime, l_prime, h, i, pattern_size);
 		}
 	}
+
 	printf("\n");
 	printf("%d \n", comparisons);
 }
 
-int apply_skip(char * text, int text_size, int pos) {
-	return pos+1;
+
+int apply_skip(char * text, int * L_prime, int * l_prime, int pos_t, int pos_p, int pattern_size) {
+	int bc = bad_character(text, pos_t, pos_p);
+	int sgs = strong_good_suffix(L_prime, l_prime, pos_t, pattern_size);
+	printf("bc: %d sgs: %d\n", bc, sgs);
+	return (bc > sgs) ? bc : sgs;
+}
+
+int strong_good_suffix(int * L_prime, int * l_prime, int pos, int pattern_size) {
+	int Li = L_prime[pos];
+	int li = l_prime[pos];
+	if (Li > 0) {
+		return pattern_size - Li;
+	} else {
+		return pattern_size - li;
+	}
+}
+
+void z_preprocess(char * pattern, int pattern_size, int * Z) {
+	int l = 0;
+	int r = 0;
+	int k;
+	Z[0] = 0; /* Zi for all 0 < i < k-1 */
+	for (k = 1; k < pattern_size; k++) { /*because we want a proper prefix i=1*/
+		if(k>r) {
+			/* if k was larger than r in this iteration it will be larger in the next if Zk=0
+			* this means the following r=k has no effect on the algorithim */
+			r = k; 
+			while (pattern[r-k]==pattern[r] && r<pattern_size) {
+				r++;
+			}
+			Z[k] = r-k; /* r - k in this case is equivalent to the length */
+			if ((r-k) > 0) { 
+				r--; /* we only do r-- as what we want is r=k+Zk-1 but Zk is r-k so r = k+r-k-1 <->  r=r-1*/
+				l = k;
+			} 
+		} else {
+			int k_prime = k - l;
+			if (Z[k_prime] < (r-k)) {
+				Z[k] = Z[k_prime];
+			} else {
+				while (pattern[r-k]==pattern[r] && r<pattern_size) {
+					r++;
+				}
+				Z[k] = r-k;
+				l=k;
+				r--;
+			}
+		}
+	}
+}
+
+void generate_N_array(char * pattern, int pattern_size, int * N) {
+	char reversed[pattern_size];
+	int aux;
+	int i = 0;
+	for (i=0; i<pattern_size; i++) {
+		reversed[i] = pattern[(pattern_size-1)-i];
+	}
+
+	z_preprocess(reversed, pattern_size, N);
+
+	for (i=0; i<pattern_size/2; i++) {
+		aux = N[(pattern_size-1)-i];
+		N[(pattern_size-1)-i] = N[i];
+		N[i] = aux;
+	}
+
+}
+
+void generate_L_prime_array(char * pattern, int pattern_size, int * N, int * L_prime) {
+	int i = 0;
+	int j = 0;
+	for (i=0; i<pattern_size; i++) {
+		L_prime[i] = 0;
+	}
+
+	for (i=0, j=0; j<pattern_size-1; j++) {
+		i = pattern_size - N[j];
+		if (i<pattern_size)
+		{
+			L_prime[i] = j;
+		}
+		
+	}
+
+}
+
+void generate_l_prime_array(int pattern_size, int * N, int * l_prime) {
+	int i = 0;
+	for (i=0; i<pattern_size; i++) {
+		l_prime[i] = 0;
+	}
+
+	for (i=0; i<pattern_size; i++) {
+		if (N[i] == i+1)
+		{
+			l_prime[pattern_size-i-1] = i+1;
+		}
+	}
+	for (i=pattern_size-2; i>=0; --i) {
+		if (l_prime[i] == 0)
+		{
+			l_prime[i] = l_prime[i+1];
+		}
+	}
+
+}
+
+void R_preprocess(char * pattern, int pattern_size) {
+	int i = 0;
+	int aux = 0;
+	for (i=0; i<ALPHABET_SIZE; i++) {
+		R[i] = 0;
+	}
+
+	for (i = pattern_size-1; i >= 0 && aux < ALPHABET_SIZE; i--)
+	{
+		if (pattern[i] == 'A' && R[0] == 0) {
+			R[0] = i+1; /*i is the index and we want the actual position in the pattern*/
+			aux++;
+		}
+		else if (pattern[i] == 'C' && R[1] == 0) {
+			R[1] = i+1;
+			aux++;
+		}
+		else if (pattern[i] == 'G' && R[2] == 0) {
+			R[2] = i+1;
+			aux++;
+		}
+		else if (pattern[i] == 'T' && R[3] == 0) {
+			R[3] = i+1;
+			aux++;
+		}
+		
+	}
+}
+
+
+int bad_character(char * text, int pos_t, int pos_p) {
+	int result = pos_p;
+	char check = text[pos_t];
+	printf("pos_p: %d, pos_t: %d, check: %c\n", pos_p, pos_t, check);
+	if (check == 'A') {
+		result -= R[0];
+	}
+	else if (check == 'C') {
+		result -= R[1];
+	}
+	else if (check == 'G') {
+		result -= R[2];
+	}
+	else if (check == 'T') {
+		result -= R[3];
+	}
+	return result > 1 ? result : 1;
 }
