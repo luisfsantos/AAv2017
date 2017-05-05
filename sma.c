@@ -208,7 +208,6 @@ char * update_buffer(char * buffer, int * size, int * content_size) {
 		if(space == 0) {
 			space+=*size;
 			*size = *size*GROWTH;
-			if (VERBOSE) { printf("I have no space so I will double to %d and now I have %d free spaces \n", *size, space); }
 			temp_buff = (char *) realloc(buffer, *size*sizeof(char));
 			if (temp_buff != NULL) {
 				buffer = temp_buff;
@@ -216,7 +215,6 @@ char * update_buffer(char * buffer, int * size, int * content_size) {
 				exit(-1);
 			}
 		}
-		if (VERBOSE) { printf("I have space (%d) so I will place __ %c __\n", space, c); }
 		buffer[index] = c;
 		index++;
 		space--;
@@ -229,7 +227,6 @@ char * update_buffer(char * buffer, int * size, int * content_size) {
 	if (index*REDUCTION < space) {
 		*size = *size/calc_diff(index, space);
 		space=*size-index-1;
-		if (VERBOSE) { printf("I have too much space so I will reduce to %d and now I have %d free spaces \n", *size, space); }
 		temp_buff = (char *) realloc(buffer, *size*sizeof(char));
 		if (temp_buff != NULL) {
 			buffer = temp_buff;
@@ -286,7 +283,7 @@ void kmp_algorithim(char * text, int text_size, char * pattern, int pattern_size
 	if (VERBOSE) { 
 		int j;
 		for (j = 0; j<pattern_size; j++) {
-			printf("%d ", pi_table[j]);
+			printf("pi_table[%d]:%d \n",j, pi_table[j]);
 		}
 		printf("\n"); 
 	}
@@ -296,10 +293,12 @@ void kmp_algorithim(char * text, int text_size, char * pattern, int pattern_size
 	int t; /* the beginning of the current match in text */
 	
 	for (t = 0; t < text_size; t++) {
-
+		if (VERBOSE) {
+			printf("pattern[p: %d] = %c, text[t: %d] = %c\n", p, pattern[p], t, text[t]);
+		}
 		while ((p > 0) && (pattern[p] != text[t])) {
 			comparisons++;
-			p = pi_table[p];
+			p = pi_table[p-1];
 		}
 
 		comparisons++;
@@ -321,15 +320,16 @@ void kmp_algorithim(char * text, int text_size, char * pattern, int pattern_size
 void generate_pi_table (int *pi_table, char * pattern, int pattern_size) {
 	int i = 0;
 	int pos = 1;
-	pi_table[0] = 0; /* always like this */
-
+	pi_table[0] = 0; /* always like this */ 
+	if (VERBOSE) {printf("%s\n", "Pi table creation");}
 	while (pos < (pattern_size-1)) {
+		if (VERBOSE) {printf("pattern[pos:%d] = %c, pattern[i:%d] = %c\n", pos, pattern[pos], i, pattern[i]);}
 		if(pattern[pos] == pattern[i]) {
 			i+=1;
 			pi_table[pos]=i;
 			pos+=1;
 		} else if (i > 0) {
-			i = pi_table[i];
+			i = pi_table[i-1];
 		} else {
 			pi_table[pos] = 0;
 			pos+=1;
@@ -404,7 +404,12 @@ int apply_skip(char * text, int * L_prime, int * l_prime, int pos_t, int pos_p, 
 int strong_good_suffix(int * L_prime, int * l_prime, int pos, int pattern_size) {
 	int Li = L_prime[pos];
 	int li = l_prime[pos];
-	if (Li > 0) {
+	if (VERBOSE) {
+		printf("Pattern size: %d, Li: %d, li: %d\n", pattern_size, Li, li);
+	}
+	if (pos == pattern_size) {
+		return 1;
+	} else if (Li > 0) {
 		return pattern_size - Li;
 	} else {
 		return pattern_size - li;
@@ -474,7 +479,7 @@ void generate_L_prime_array(char * pattern, int pattern_size, int * N, int * L_p
 		i = pattern_size - N[j];
 		if (i<pattern_size)
 		{
-			L_prime[i] = j;
+			L_prime[i] = j+1; /*TODO check why j+1 to explain correctly!!*/
 		}
 		
 	}

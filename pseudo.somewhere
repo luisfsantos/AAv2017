@@ -1,0 +1,12 @@
+pattern_size ← length[p]
+pi_table[1] ← 0
+i ← 0
+for pos ← 2 to pattern_size do
+	while i > 0 and p[i + 1] , p[pos] do
+		i ← pi_table[i]
+	end while
+	if p[i + 1] = p[pos] then
+		i ← i + 1
+	end if
+	pi_table[pos] ← i
+end for
