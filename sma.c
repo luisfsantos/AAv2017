@@ -28,6 +28,7 @@
 #define VERBOSE 0
 
 #define ALPHABET_SIZE 4
+
 /* 
 *  How to Compile this program 
 *  gcc -O3 -ansi -Wall sma.c
@@ -42,9 +43,7 @@ char *pattern;
 int R[ALPHABET_SIZE];
 char Alphabet[ALPHABET_SIZE] = {'A', 'C', 'G', 'T'};
 
-void test(void** func);
 void run();
-void init();
 char * update_buffer(char * buffer, int * size, int * content_size);
 int execute_command(char command);
 int calc_diff(int index, int space);
@@ -70,18 +69,8 @@ int main(int argc, char const *argv[])
 {
 	text = (char *) malloc(buffer_size[TEXT_IDX] * sizeof(char));
 	pattern = (char *) malloc(buffer_size[PATTERN_IDX] * sizeof(char));
-
-
-	init();
 	run();
 	return 0;
-}
-
-void test(void ** func) {
-
-}
-
-void init() {
 }
 
 /* ================================================================
@@ -300,7 +289,6 @@ void kmp_algorithim(char * text, int text_size, char * pattern, int pattern_size
 			comparisons++;
 			p = pi_table[p-1];
 		}
-
 		comparisons++;
 		if (pattern[p] == text[t]) {
 			p++;
@@ -479,7 +467,7 @@ void generate_L_prime_array(char * pattern, int pattern_size, int * N, int * L_p
 		i = pattern_size - N[j];
 		if (i<pattern_size)
 		{
-			L_prime[i] = j+1; /*TODO check why j+1 to explain correctly!!*/
+			L_prime[i] = j+1; /*Because we are dealing with positions in the pattern and not indexes*/
 		}
 		
 	}
