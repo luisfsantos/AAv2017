@@ -63,9 +63,10 @@ void run() {
 	int vertexes;
 	char command;
 	LCT tree;
-	scanf("%d\n", &vertexes);
+	scanf("%d", &vertexes);
 	tree = allocLCT(vertexes);
 	do {
+		getc(stdin); /*remove new line*/
 		command = getc(stdin);
 		printTree(tree, vertexes);
 	} while (execute_command(tree, command));
@@ -95,14 +96,20 @@ int execute_command(LCT t, char command) {
 	int r;
 	switch (command) {
 		case LINK:
-			scanf(" %d %d\n", &r, &v);
+			scanf(" %d %d", &r, &v);
 			link(t, r, v);
 			break; 
 		case CUT:
-			/*TODO cut!!*/
+			scanf(" %d %d", &r, &v);
+			cut(t, r, v);
 			break;
 		case CONNECTED:
-			/*TODO connectedQ*/
+			scanf(" %d %d", &u, &v);
+			if (connectedQ(t, u, v)) {
+				printf("T\n");
+			} else {
+				printf("F\n");
+			}
 			break;
 		case EXIT:
 			run = 0;
@@ -126,6 +133,14 @@ void printTree(LCT t, int vertexes) {
 
 LCT allocLCT(int v) {
 	LCT tree = (LCT) malloc(v * sizeof(LCT));
+	int i = 0;
+	for (i = 0; i < v; i++)
+	{
+		tree[i].right = NULL;
+		tree[i].left = NULL;
+		tree[i].hook = NULL;
+		tree[i].sum = 0;
+	}
 	return tree;
 }
 
@@ -147,7 +162,7 @@ void access(LCT t, int v) {
 }
 
 int isRoot(LCT node) {
-	printf("%s\n", "in isRoot");
+	/*printf("%s\n", "in isRoot");*/
 	if (node->hook == NULL) {
 		return 1;
 	}
@@ -157,23 +172,23 @@ int isRoot(LCT node) {
 void splay(LCT node) {
 	while (!isRoot(node)) {
 		if( node->hook->hook == NULL ) {
-			printf("%s\n", "node->hook->hook == NULL");
+			/*printf("%s\n", "node->hook->hook == NULL");*/
 			if( node->hook->left == node ) rotate_right( node->hook );
 			else rotate_left( node->hook );
 		} else if( node->hook->left == node && node->hook->hook->left == node->hook ) {
-			printf("%s\n", "node->hook->left == node && node->hook->hook->left == node->hook");
+			/*printf("%s\n", "node->hook->left == node && node->hook->hook->left == node->hook");*/
 			rotate_right( node->hook->hook );
 			rotate_right( node->hook );
 		} else if( node->hook->right == node && node->hook->hook->right == node->hook ) {
-			printf("%s\n", "node->hook->right == node && node->hook->hook->right == node->hook");
+			/*printf("%s\n", "node->hook->right == node && node->hook->hook->right == node->hook");*/
 			rotate_left( node->hook->hook );
 			rotate_left( node->hook );
 		} else if( node->hook->left == node && node->hook->hook->right == node->hook ) {
-			printf("%s\n", "node->hook->left == node && node->hook->hook->right == node->hook");
+			/*printf("%s\n", "node->hook->left == node && node->hook->hook->right == node->hook");*/
 			rotate_right( node->hook );
 			rotate_left( node->hook );
 		} else {
-			printf("%s\n", "else");
+			/*printf("%s\n", "else");*/
 			rotate_left( node->hook );
 			rotate_right( node->hook );
 		}
@@ -181,7 +196,7 @@ void splay(LCT node) {
 }
 
 void rotate_right(LCT node) {
-	printf("%s\n", "rotate_right");
+	/*printf("%s\n", "rotate_right");*/
 	
 	LCT node_left = node->left;
 
@@ -197,11 +212,11 @@ void rotate_right(LCT node) {
 
     if(node_left != NULL) node_left->right = node;
     node->hook = node_left;
-    printf("%s\n", "end rotate_right");
+    /*printf("%s\n", "end rotate_right");*/
 }
 
 void rotate_left(LCT node) {
-	printf("%s\n", "rotate_left");
+	/*printf("%s\n", "rotate_left");*/
 	LCT node_right = node->right;
 	
 	if (node_right != NULL) {
@@ -216,29 +231,30 @@ void rotate_left(LCT node) {
 
     if(node_right != NULL) node_right->left = node;
     node->hook = node_right;
-    printf("%s\n", "end rotate_left");
+    /*printf("%s\n", "end rotate_left");*/
 }
 
 LCT findRoot(LCT t, int r) {
 	LCT node_r = &t[INDEXOF(r)];
 	LCT left = node_r;
-	printf("%s\n", "Before access");
+	/*printf("%s\n", "Before access");*/
 	access(t, r);
-	printf("%s\n", "Before while");
+	/*printf("%s\n", "Before while");*/
 	while(left->left != NULL) {
 		left = left->left;
 	}
-	printf("%s\n", "Before splay");
+	/*printf("%s\n", "Before splay");*/
 	splay(left);
-	printf("%s\n", "After splay");
+	/*printf("%s\n", "After splay");*/
 	return left;
 }
 
 void reRoot(LCT t, int v) {
+	//TODO checkup this https://www.cs.cmu.edu/~sleator/papers/dynamic-trees.pdf
 	LCT node_v = &t[INDEXOF(v)];
-	printf("%s\n", "Before findRoot");
+	/*printf("%s\n", "Before findRoot");*/
 	LCT represented_root = findRoot(t, v);
-	printf("%s\n", "After ReRoot");
+	/*printf("%s\n", "After ReRoot");*/
 	node_v->left = represented_root;
 	represented_root->hook = node_v;
 }
@@ -246,12 +262,40 @@ void reRoot(LCT t, int v) {
 void link(LCT t, int r, int v) {
 	LCT node_r = &t[INDEXOF(r)];
 	LCT node_v = &t[INDEXOF(v)];
-	printf("%s\n", "Before ReRoot");
+	/*printf("%s\n", "Before ReRoot");*/
 	reRoot(t, r);
-	printf("%s\n", "Before access r");
+	/*printf("%s\n", "Before access r");*/
 	access(t, r);
-	printf("%s\n", "Before access t");
+	/*printf("%s\n", "Before access t");*/
 	access(t, v);
 	node_v->left = node_r;
 	node_r->hook = node_v;
+}
+
+int connectedQ(LCT t, int u, int v) {
+	LCT node_u = &t[INDEXOF(u)];
+	reRoot(t, u);
+	return node_u == findRoot(t, v);
+}
+
+void cut(LCT t, int r, int v) {
+	LCT node_r = &t[INDEXOF(r)];
+	LCT node_v = &t[INDEXOF(r)];
+	LCT subtree = node_v->left;
+	if (connectedQ(t, r, v)) {
+		access(t, v);
+		/* If r is the rightmost node of v's left subtree then its v's parent */
+		while(subtree != NULL && subtree->right != NULL) {
+			subtree = subtree->right;
+		}
+		if (subtree == node_r) {
+			node_v->left = NULL;
+			if (!isRoot(node_v->left)) node_v->left->hook = NULL;
+		} else {
+			access(t, r);
+			if (!isRoot(node_r->left)) node_r->left->hook = NULL;
+			node_r->left = NULL;
+		}
+	}
+	
 }
