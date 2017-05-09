@@ -32,7 +32,7 @@ void printTree(LCT t, int vertexes);
 int findNumber(LCT t, LCT node, int vertexes);
 
 LCT allocLCT(int v);
-void freeLCT(LCT t);
+void freeLCT(LCT t, int vertexes);
 void access(LCT t, int v);
 void reRoot(LCT t, int v);
 int connectedQ(LCT t, int u, int v);
@@ -74,6 +74,7 @@ void run() {
 		command = getc(stdin);
 		/*printTree(tree, vertexes);*/
 	} while (execute_command(tree, command));
+	freeLCT(tree, vertexes);
 }
 
 
@@ -121,7 +122,6 @@ int execute_command(LCT t, char command) {
 			break;
 		default:
 			run = 0;
-			freeLCT(t);
 			break;
 	}
 	return run;
@@ -148,7 +148,7 @@ int findNumber(LCT t, LCT node, int vertexes) {
 }
 
 LCT allocLCT(int v) {
-	LCT tree = (LCT) malloc(v * sizeof(LCT));
+	LCT tree = malloc(v * sizeof(struct LCT));
 	int i = 0;
 	for (i = 0; i < v; i++)
 	{
@@ -160,7 +160,7 @@ LCT allocLCT(int v) {
 	return tree;
 }
 
-void freeLCT(LCT t) {
+void freeLCT(LCT t, int vertexes) {
 	free(t);
 }
 
