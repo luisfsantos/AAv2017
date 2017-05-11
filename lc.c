@@ -72,7 +72,7 @@ void run() {
 	do {
 		getc(stdin); /*remove new line*/
 		command = getc(stdin);
-		/*printTree(tree, vertexes);*/
+		printTree(tree, vertexes);
 	} while (execute_command(tree, command));
 	freeLCT(tree, vertexes);
 }
@@ -167,9 +167,7 @@ void freeLCT(LCT t, int vertexes) {
 void normalize(LCT node) {
 	/*printf("%s\n", "@ Normalize");*/
 	if (node->sum) {
-		/*printf("Normalizing: %d ", node->sum);*/
 		node->sum = !node->sum;
-		/*printf("to: %d\n", node->sum);*/
 		LCT aux_left = node->left;
 		LCT aux_right = node->right;
 		node->left = aux_right;
@@ -209,7 +207,6 @@ void access(LCT t, int v) {
 }
 
 int isRoot(LCT node) {
-	/*printf("%s\n", "in isRoot");*/
 	/*printf("%s\n", "@ isRoot");*/
 	return node->hook == NULL || (node != node->hook->left && node != node->hook->right);
 }
@@ -229,6 +226,7 @@ void splay(LCT node) {
 			}
 		} else {
 			LCT grandparent = parent->hook;
+			if(!isRoot(grandparent)) { normalize(grandparent->hook); } /*we might have the node at a pretty deep point and the second rotate will call the great grandparent*/
 			normalize(grandparent);
 			normalize(parent);
 			normalize(node);
@@ -256,7 +254,6 @@ void splay(LCT node) {
 
 void rotate_right(LCT node) {
 	/*printf("%s\n", "@ RoR");*/
-	/*printf("%s\n", "rotate_right");*/
 	/*we are sure parent exists because these are aux funcions of splay*/
 	LCT parent = node->hook;
 	LCT grandparent = parent->hook;
@@ -278,6 +275,7 @@ void rotate_right(LCT node) {
 
 void rotate_left(LCT node) {
 	/*printf("%s\n", "@ RoL");*/
+	/*we are sure parent exists because these are aux funcions of splay*/
 	LCT parent = node->hook;
 	LCT grandparent = parent->hook;
 	parent->right = node->left;
@@ -296,17 +294,6 @@ void rotate_left(LCT node) {
 	}
 }
 
-LCT findRoot(LCT t, int r) {
-	LCT node_r = &t[INDEXOF(r)];
-	LCT left = node_r;
-	access(t, r);
-	while(left->left != NULL) {
-		left = left->left;
-	}
-	splay(left);
-	return left;
-}
-
 void reRoot(LCT t, int v) {
 	access(t, v);
 	flip(t, v);
@@ -315,61 +302,32 @@ void reRoot(LCT t, int v) {
 void link(LCT t, int r, int v) {
 	LCT node_r = &t[INDEXOF(r)];
 	LCT node_v = &t[INDEXOF(v)];
-	/*printf("%s\n", "Before ReRoot");*/
 	if (!connectedQ(t, r, v)) {
 		/*printf("L %d %d\n", r, v);*/
-		/*reRoot(t, r);*/
-		/*access(t, r);*/
-		/*access(t, v);*/
+		/*reRoot(t, r); not needed as connectedQ reroots to r*/
+		/*access(t, r); not needed as connectedQ accesses r and v in this order*/
+		/*access(t, v); explained above*/
 		node_v->left = node_r;
 		node_r->hook = node_v;
 	}
 }
 
 int connectedQ(LCT t, int u, int v) {
-	/*printf("Connected: %d, %d\n", u, v);*/
 	LCT node_u = &t[INDEXOF(u)];
 	LCT node_v = &t[INDEXOF(v)];
 	reRoot(t, u);
 	access(t, u);
 	access(t, v);
-	/*printf("%p == %p\n", (void*)node_u, (void*)node_v->left);*/
 	return node_u == node_v->left;
 }
 
 void cut(LCT t, int r, int v) {
 	LCT node_r = &t[INDEXOF(r)];
-	/*LCT node_v = &t[INDEXOF(v)];*/
-	/*
-	LCT subtree = node_v->left;
-	if (connectedQ(t, r, v)) {
-		access(t, v);
-		If r is the rightmost node of v's left subtree then its v's parent 
-		while(subtree != NULL && subtree->right != NULL) {
-			subtree = subtree->right;
-		}
-		if (subtree == node_r) {
-			node_v->left = NULL;
-			if (!isRoot(node_v->left)) node_v->left->hook = NULL;
-		} else {
-			access(t, r);
-			if (!isRoot(node_r->left)) node_r->left->hook = NULL;
-			node_r->left = NULL;
-		}
-	}*/
 	if (connectedQ(t, v, r)) {
-		/*reRoot(t, v); not needed as connected reroots to v */
-		/*access(t, r);*/
-		normalize(node_r);
-		if(node_r->left && !isRoot(node_r->left)) node_r->left->hook = NULL;
+		/*reRoot(t, v); not needed as connectedQ reroots to v */
+		/*access(t, r); not needed as connectedQ accesses r last*/
+		/*normalize(node_r); not needed as connectedQ has an access to r which should normalize r*/
+		if(node_r->left) node_r->left->hook = NULL;
 		node_r->left = NULL;
 	}
-	/*
-	cut u v
-	reroot v
-	access u
-	unflip u
-	u.left = NULL
-	*/
-	
 }
