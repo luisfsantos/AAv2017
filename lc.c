@@ -1,3 +1,8 @@
+/*
+* Catarina Cepeda 77966
+* Luis Santos 77900
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,6 +16,8 @@
 #endif
 
 #define INDEXOF(x) x-1
+
+#define VERBOSE 0
 
 typedef struct LCT *LCT;
 
@@ -35,9 +42,11 @@ LCT allocLCT(int v);
 void freeLCT(LCT t, int vertexes);
 void access(LCT t, int v);
 void reRoot(LCT t, int v);
+LCT findRoot(LCT t, int r);
 int connectedQ(LCT t, int u, int v);
 void link(LCT t, int r, int v);
 void cut(LCT t, int r, int v);
+int edgeConnected(LCT t, int u, int v);
 
 void splay(LCT node);
 void rotate_right(LCT node);
@@ -72,7 +81,7 @@ void run() {
 	do {
 		getc(stdin); /*remove new line*/
 		command = getc(stdin);
-		printTree(tree, vertexes);
+		if (VERBOSE) printTree(tree, vertexes);
 	} while (execute_command(tree, command));
 	freeLCT(tree, vertexes);
 }
@@ -129,9 +138,6 @@ int execute_command(LCT t, char command) {
 
 void printTree(LCT t, int vertexes) {
 	int i;
-	for (i = 0; i<vertexes; i++) {
-		printf("this: %p, left: %p, right: %p, hook: %p, sum: %d\n", (void*)&t[i], (void*)t[i].left, (void*)t[i].right, (void*)t[i].hook, t[i].sum);
-	}
 	printf("%s\n", "-----TREE-----");
 	for (i = 0; i<vertexes; i++) {
 		printf("%d, left: %d, right: %d, hook: %d, sum: %d\n", findNumber(t, &t[i], vertexes), findNumber(t, t[i].left, vertexes), findNumber(t, t[i].right, vertexes), findNumber(t, t[i].hook, vertexes), t[i].sum);
@@ -191,19 +197,26 @@ void flip(LCT t, int u) {
 void access(LCT t, int v) {
 	/*printf("%s\n", "@ Access");*/
 	LCT v_node = &t[INDEXOF(v)];
+	LCT v_copy = v_node;
 	splay(v_node);
 	if (v_node->right != NULL) {
 		v_node->right->hook = v_node;
 		v_node->right = NULL;
 	}
-	while (v_node->hook != NULL) {
-		LCT w = v_node->hook;
+	while (v_copy->hook != NULL) {
+		LCT w = v_copy->hook;
 		splay(w);
+
+		/* set pathparent of w right to w*/
 		if (w->right) w->right->hook = w;
-		w->right = v_node;
-		v_node->hook = w;
-		splay(v_node);
+
+		/*set v to w right*/
+		w->right = v_copy;
+		w->right->hook = w;
+
+		v_copy = w;
 	}
+	splay(v_node);
 }
 
 int isRoot(LCT node) {
@@ -226,7 +239,7 @@ void splay(LCT node) {
 			}
 		} else {
 			LCT grandparent = parent->hook;
-			if(!isRoot(grandparent)) { normalize(grandparent->hook); } /*we might have the node at a pretty deep point and the second rotate will call the great grandparent*/
+			if(!isRoot(grandparent)) { normalize(grandparent->hook); } /*sometimes the grandparent of the parent is accessed in the rotations*/
 			normalize(grandparent);
 			normalize(parent);
 			normalize(node);
@@ -294,9 +307,54 @@ void rotate_left(LCT node) {
 	}
 }
 
+LCT findRoot(LCT t, int r) {
+	LCT node_r = &t[INDEXOF(r)];
+	LCT left = node_r;
+ 	access(t, r);
+ 	while(left->left != NULL) {
+ 		left = left->left;
+ 		normalize(left);
+ 	}
+ 	return left;
+ }
+
+int edgeConnected(LCT t, int u, int v) {
+	if (u == v) {
+		return 0;
+	}
+	LCT node_u = &t[INDEXOF(u)];
+	LCT node_v = &t[INDEXOF(v)];
+	reRoot(t, u);
+	access(t, u);
+	access(t, v);
+	return node_u == node_v->left && !node_u->right;
+}
+
 void reRoot(LCT t, int v) {
 	access(t, v);
 	flip(t, v);
+}
+
+int connectedQ(LCT t, int u, int v) {
+	if (u == v) {
+		return 1;
+	}
+	LCT node_u = &t[INDEXOF(u)];
+	reRoot(t, u);
+	access(t, u);
+	return node_u == findRoot(t, v);
+}
+
+void cut(LCT t, int r, int v) {
+	LCT node_v = &t[INDEXOF(v)];
+	if (edgeConnected(t, r, v)) {
+		/*printf("C %d %d\n", r, v);*/
+		/*reRoot(t, v); not needed as connectedQ reroots to v */
+		/*access(t, r); not needed as connectedQ accesses r last*/
+		/*normalize(node_r); not needed as connectedQ has an access to r which should normalize r*/
+		if(node_v->left) node_v->left->hook = NULL;
+		node_v->left = NULL;
+	}
 }
 
 void link(LCT t, int r, int v) {
@@ -307,27 +365,7 @@ void link(LCT t, int r, int v) {
 		/*reRoot(t, r); not needed as connectedQ reroots to r*/
 		/*access(t, r); not needed as connectedQ accesses r and v in this order*/
 		/*access(t, v); explained above*/
-		node_v->left = node_r;
-		node_r->hook = node_v;
-	}
-}
-
-int connectedQ(LCT t, int u, int v) {
-	LCT node_u = &t[INDEXOF(u)];
-	LCT node_v = &t[INDEXOF(v)];
-	reRoot(t, u);
-	access(t, u);
-	access(t, v);
-	return node_u == node_v->left;
-}
-
-void cut(LCT t, int r, int v) {
-	LCT node_r = &t[INDEXOF(r)];
-	if (connectedQ(t, v, r)) {
-		/*reRoot(t, v); not needed as connectedQ reroots to v */
-		/*access(t, r); not needed as connectedQ accesses r last*/
-		/*normalize(node_r); not needed as connectedQ has an access to r which should normalize r*/
-		if(node_r->left) node_r->left->hook = NULL;
-		node_r->left = NULL;
+		node_r->left = node_v;
+		node_v->hook = node_r;
 	}
 }
